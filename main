@@ -1,0 +1,81 @@
+# Càrrega dades
+# https://pandas.pydata.org/docs/reference/api/pandas.read_excel.html
+
+from plotly.offline import plot
+from IPython.display import display, HTML
+import plotly.graph_objects as go
+import pandas as pd
+
+file_path = '/kaggle/input/accn-ytd/ACCN_YTD.xlsx'
+df = pd.read_excel(file_path)
+
+# convertir a date time
+from datetime import datetime
+
+date_format = '%m/%d/%Y'
+
+df['datetime_column'] = pd.to_datetime(
+    df['Date'], 
+    format=date_format)
+
+# crear gràfic a partir de # seguint https://plotly.com/python/ohlc-charts/ Adding Customized Text and Annotations
+
+
+
+# 1. DEFINE A FUNCTION to wrap the display logic
+def display_hidden_plotly(fig):
+    """
+    Renders a Plotly figure and then hides the input cell using 
+    a custom HTML/CSS wrapper.
+    """
+    # 2. CONVERT FIGURE TO HTML STRING
+    # Using 'cdn' to ensure external JavaScript resources are loaded
+    html_fig = fig.to_html(include_plotlyjs='cdn', full_html=False)
+    
+    # 3. APPLY CSS AND DISPLAY
+    # This CSS block is the standard Kaggle hide-input script.
+    # The error might be a subtle interference, so we keep the HTML simple.
+    display(HTML(f"""
+    <style>
+    .input {{
+        display: none !important;
+    }}
+    </style>
+    {html_fig}
+    """))
+
+
+# 4. CREATE YOUR PLOTLY FIGURE (use your actual OHLC data here)
+fig = go.Figure(data=[go.Ohlc(
+        x=df['datetime_column'],
+        open=df['Open'], high=df['High'],
+        low=df['Low'], close=df['Close'],
+        increasing_line_color= 'orange', decreasing_line_color= 'black',
+        showlegend=True
+    )])
+
+
+comment_text = "Font: https://www.nasdaq.com/market-activity/stocks/acn/historical?page=1&rows_per_page=10&timeline=ytd"
+    
+fig.add_annotation(
+    text=comment_text,
+    xref="paper",  # Reference the figure paper (the entire area)
+    yref="paper",
+    x=0.0,         # Start the text at the left edge
+    y=0,       # Position it below the plot (adjust this value as needed)
+    showarrow=False,
+    align="left",
+    font=dict(size=12, color="gray")
+)
+    
+fig.update_layout(
+    autosize=True,  # Optional: Disabling autosize can help ensure the dimensions are respected
+    width=1000,
+    height=1000,
+    title="Accenture plc Class A Ordinary Shares (Ireland) (ACN) Historical Quotes"
+)
+
+# 5. CALL THE FUNCTION
+# Run the entire process inside the function wrapper
+display_hidden_plotly(fig)
+
